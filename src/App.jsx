@@ -1,19 +1,46 @@
-import { useEffect } from 'react';
-import { getAllPokemon } from './utils/pokemon';
+import { useEffect, useState } from 'react';
+import { getAllPokemon, getPokemon } from './utils/pokemon';
 import './App.css'
 
 function App() {
   const initialURL = "https://pokeapi.co/api/v2/pokemon";
+  const [loading, setLoding] = useState(true);
+  const [pokemonData, setPokemonData] = useState([]);
 
   useEffect(() => {
     const fetchPokemonData = async () => {
       let res = await getAllPokemon(initialURL);
-      console.log(res)
+      loadPokemon(res.results)
+      setLoding(false);
     };
     fetchPokemonData();
   }, [])
 
-  return <div className='App'></div>
+  const loadPokemon = async (data) => {
+    // Promise.allは複数の非同期処理を並行して実行して、すべての結果を待つ
+    let _pokemonData = await Promise.all(
+      data.map((pokemon) => {
+        // それぞれのポケモンの詳細（画像・タイプなど）を取得する
+        let pokemonRecord = getPokemon(pokemon.url);
+        return pokemonRecord
+      })
+    )
+    setPokemonData(_pokemonData);
+  };
+
+  console.log(pokemonData);
+
+  return (
+    <div className='App'>
+      {loading ? (
+        <h1>ロード中・・・</h1>
+      ) : (
+        <>
+          <h1>ポケモンデータを取得しました</h1>
+        </>
+      )}
+    </div>
+  );
 }
 
 export default App
